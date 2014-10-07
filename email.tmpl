@@ -1,0 +1,19 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+    <title>New photos</title>
+</head>
+<body>
+<p>New pictures have been posted:</p>
+<ul>
+    {% for user, photos in user_photos.iteritems() %}
+        <li><a href="{{ users[user].photosurl }}"><img src="{{ users[user].buddyicon }}" />{{ users[user].realname }}</a></li>
+        <ul>
+            {% for photo in photos %}
+                <li><a href="{{ photo.url_o }}"><img src="{{ photo.url_m }}" />{{ photo.title }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+</ul>
+</body>
+</html>
