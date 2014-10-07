@@ -22,9 +22,11 @@ Clone the project: `git clone http://www.github.com/paour/flickr_email`
 - Edit `state.ini` to provide your API_KEY and API_SECRET
 
 - To add a user
--- Run `python flickr_email.py --user_add`, which provides a URL
--- Open the URL (you can send it to another user), and authorize the app, this will provide a result containing an oauth_verifier
--- Run `python flickr_email.py --user_auth_verifier <oauth_verifier>` to finalize authorizing the user
+	- Run `python flickr_email.py --user_add`, which provides a URL
+	- Open the URL (you can send it to another user), and authorize the app, this will provide a result containing an oauth_verifier
+	- Run `python flickr_email.py --user_auth_verifier <oauth_verifier>` to finalize authorizing the user
+
+- You can also use an interactive authorization system or use an existing old (pre-OAuth) token (but be warned Flickr will then disable that token for other apps), see the help for more info
 
 ## Configure email parameters
 
