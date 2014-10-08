@@ -31,7 +31,8 @@ def main():
     parser.add_argument('--user_auth_verifier', '-v', action='store', help='finish adding the user based on OAuth')
     parser.add_argument('--user_old_auth', '-o', action='store', help='add a user based on a pre-OAuth token')
     parser.add_argument('--user_delete', '-d', action='store', help='remove a user')
-    parser.add_argument('--since_days', '-s', action='store', type=int, help='remove a user')
+    parser.add_argument('--since_days', '-s', action='store', type=int,
+                        help='override default period (last execution or 1 day)')
 
     args = parser.parse_args()
 
@@ -189,18 +190,24 @@ def main():
     user_photos_by_taken = {}
     users = {}
 
-    for f in glob.glob("users/*"):
+    user_profiles = glob.glob("users/*")
+
+    if not len(user_profiles):
+        exit("Please authorize users (no registered users yet)")
+
+    for f in user_profiles:
         flickr_api.set_auth_handler(flickr_api.auth.AuthHandler.load(f))
 
         username = os.path.basename(f)
 
         last_date = state.getint('main', 'last_date')
-        photos = flickr_api.Photo.recentlyUpdated(min_date=last_date, extras=['url_m', 'url_o', 'description', 'date_taken'])
+        photos = flickr_api.Photo.recentlyUpdated(min_date=last_date,
+                                                  extras=['url_m', 'url_o', 'description', 'date_taken'])
 
         if photos.data:
             info = flickr_api.test.login().getInfo()
 
-            info['buddyicon'] = "http://farm{iconfarm}.staticflickr.com/{iconserver}/buddyicons/{nsid}.jpg"\
+            info['buddyicon'] = "http://farm{iconfarm}.staticflickr.com/{iconserver}/buddyicons/{nsid}.jpg" \
                 .format(**info)
 
             for photo in photos.data:
@@ -255,5 +262,7 @@ def main():
         len(users)
     )
 
+
 if __name__ == '__main__':
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     main()
