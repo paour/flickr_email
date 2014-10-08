@@ -39,6 +39,8 @@ def main():
         'last_date': int(time.time() - 24 * 60 * 60),
         'smtp_from': 'admin@example.com',
         'smtp_to': 'clients@example.com',
+        'smtp_cc': '',
+        'smtp_bcc': '',
         'smtp_subject': 'New photos',
         'smtp_port': 25,
         'smtp_server': 'localhost',
@@ -226,6 +228,8 @@ def main():
         msg = MIMEText(text, 'html', 'utf8')
         msg['From'] = state.get('main', 'smtp_from')
         msg['To'] = state.get('main', 'smtp_to')
+        msg['Cc'] = state.get('main', 'smtp_cc')
+        msg['Bcc'] = state.get('main', 'smtp_bcc')
         msg['Subject'] = state.get('main', 'smtp_subject')
 
         s = smtplib.SMTP()
