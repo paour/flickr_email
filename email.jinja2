@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+    <title>New photos</title>
+</head>
+<body>
+<h2>New photos have been posted</h2>
+
+<table style="width: 100%; border: none; text-align: center; vertical-align: middle">
+{% for user, photos in user_photos_by_taken.iteritems() %}
+	<tr><th><a href="{{ users[user].photosurl }}"><img src="{{ users[user].buddyicon }}" alt="Buddy icon" />
+        {{ users[user].realname }}
+    </a></th></tr>
+
+	{% for photo in photos %}
+		<tr><td>
+			<a href="{{ photo.url_o }}"><img src="{{ photo.url_m }}" alt="{{ photo.title }}" /></a>
+		</td></tr>
+		<tr><td>
+			<a href="{{ photo.flickr_url }}">{{ photo.title }}</a>
+		</td></tr>
+		{% if photo.description %}
+			<tr><td>
+				{{ photo.description }}
+			</td></tr>
+		{% endif %}
+	{% endfor %}
+{% endfor %}
+</table>
+
+<p>Sent by <a href="https://github.com/paour/flickr_email">flickr_email</a>.</p>
+</body>
+</html>
