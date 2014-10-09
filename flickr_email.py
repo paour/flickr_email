@@ -33,6 +33,7 @@ def main():
     parser.add_argument('--user_delete', '-d', action='store', help='remove a user')
     parser.add_argument('--since_days', '-s', action='store', type=int,
                         help='override default period (last execution or 1 day)')
+    parser.add_argument('--quiet', '-q', action='store_true', help='no output for normal operation')
 
     args = parser.parse_args()
 
@@ -77,7 +78,7 @@ def main():
         if not os.path.exists('users'):
             os.mkdir('users')
         a.save("users/" + user.username)
-        exit()
+        return
 
     if args.user_add:
         a = flickr_api.auth.AuthHandler()
@@ -91,7 +92,7 @@ def main():
         with open("tmp_users/" + a.request_token.key, "w") as f:
             f.write("\n".join([a.request_token.key,
                                a.request_token.secret]))
-        exit()
+        return
 
     if args.user_auth_verifier:
         # we don't know which of the temp users matches the verifier, try each of them in turn
@@ -119,9 +120,7 @@ def main():
 
                 os.remove(f)
 
-                exit()
-            except SystemExit:
-                exit()
+                return
             except:
                 # continue trying
                 pass
@@ -134,7 +133,7 @@ def main():
         except:
             print "Could not remove the user"
             raise
-        exit()
+        return
 
     if args.user_old_auth:
         # handle old-style auth directly, since flickr_api only handled OAuth
@@ -183,7 +182,7 @@ def main():
         if not os.path.exists('users'):
             os.mkdir('users')
         a.save("users/" + user.username)
-        exit()
+        return
 
     # get photos and send email
     user_photos = {}
@@ -223,8 +222,9 @@ def main():
     write_state(state)
 
     if len(users) == 0:
-        print "No new content"
-        exit(0)
+        if not args.quiet:
+            print "No new content"
+        return
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader('.'))
     template = env.get_template('email.jinja2')
@@ -257,10 +257,11 @@ def main():
               "set smtp_tls=true, smtp_user, smtp_pass for encrypted and authenticated SMTP"
         raise
 
-    print "Sent email containing {0} photos from {1} users".format(
-        len([item for sublist in user_photos.values() for item in sublist]),
-        len(users)
-    )
+    if not args.quiet:
+        print "Sent email containing {0} photos from {1} users".format(
+            len([item for sublist in user_photos.values() for item in sublist]),
+            len(users)
+        )
 
 
 if __name__ == '__main__':
