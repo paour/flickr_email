@@ -188,6 +188,7 @@ def main():
     user_photos = {}
     user_photos_by_taken = {}
     users = {}
+    num_photos = 0
 
     user_profiles = glob.glob("users/*")
 
@@ -209,11 +210,14 @@ def main():
             info['buddyicon'] = "http://farm{iconfarm}.staticflickr.com/{iconserver}/buddyicons/{nsid}.jpg" \
                 .format(**info)
 
+            photos.data = list(filter(lambda x: x.ispublic or x.isfriend or x.isfamily, photos.data))
+
             for photo in photos.data:
                 photo._set_properties(
                     flickr_url="https://www.flickr.com/photos/{0}/{1}/".format(username, photo.id)
                 )
 
+            num_photos += len(photos.data)
             users[username] = info
             user_photos[username] = photos.data
             user_photos_by_taken[username] = sorted(photos.data, key=lambda x: x.datetaken)
@@ -221,7 +225,7 @@ def main():
     state.set('main', 'last_date', int(time.time()))
     write_state(state)
 
-    if len(users) == 0:
+    if len(users) == 0 or num_photos == 0:
         if not args.quiet:
             print "No new content"
         return
