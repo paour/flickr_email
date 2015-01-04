@@ -30,7 +30,7 @@ Clone the project: `git clone http://www.github.com/paour/flickr_email`
 
 ## Configure email parameters
 
-- Edit `state.ini` and set the `smtp_from` and `smtp_to` parameters (if you're not using the local sendmail, you can set the `smtp_server`, `smtp_port`, `smtp_tls`, `smtp_user` and `smtp_password`)
+- Edit `state.ini` and set the `smtp_from` and `smtp_to` parameters (if you're not using the local sendmail, you can set the `smtp_server`, `smtp_port`, `smtp_tls`, `smtp_user` and `smtp_password`); `smtp_to`, `smtp_cc` and `smtp_bcc` are comma-separated lists of bare email addresses
 
 - You can customize the `email.jinja2` file, which is a Jinga2 template and receives the `user_photos` (a dict of username: [flickr.photos.recentlyUpdated](https://www.flickr.com/services/api/flickr.photos.recentlyUpdated.html) associations), `user_photos_by_taken` (sorted by capture date rather than latest update) and `users` (a dict of username: [flickr.people.getInfo](https://www.flickr.com/services/api/flickr.people.getInfo.html) associations)
 
