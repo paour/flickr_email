@@ -17,7 +17,7 @@
 			<a href="{{ photo.url_o }}"><img src="{{ photo.url_m }}" alt="{{ photo.title }}" /></a>
 		</td></tr>
 		<tr><td>
-			<a href="{{ photo.flickr_url }}">{{ photo.title }}</a>
+			<a href="{{ photo.flickr_url }}">{% if 'DSC_' in photo.title %}Full picture{% else %}{{ photo.title }}{% endif %}</a>
 		</td></tr>
 		{% if photo.description %}
 			<tr><td>

@@ -8,6 +8,7 @@ Install the dependencies with pip or easy_install:
 
 - [Jinja2](http://jinja.pocoo.org/docs/dev/)
 - [flickr_api](https://github.com/alexis-mignon/python-flickr-api/)
+- [var_dump](https://github.com/sha256/python-var-dump)
 
 Clone the project: `git clone http://www.github.com/paour/flickr_email`
 
