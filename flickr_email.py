@@ -6,6 +6,7 @@ import ConfigParser
 import time
 import os
 import os.path
+import shutil
 import smtplib
 from email.mime.text import MIMEText
 from email import charset
@@ -19,9 +20,9 @@ import jinja2
 
 
 def write_state(state):
+    shutil.copy('state.ini', 'state.bak')
     with open('state.ini', 'w') as state_file:
-        state.write(state_file)
-
+    	state.write(state_file)
 
 def get_state_array(state, section, option):
     value = state.get(section, option)
