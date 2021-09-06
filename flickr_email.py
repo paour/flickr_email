@@ -1,8 +1,8 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 
 import argparse
 import glob
-import ConfigParser
+import configparser
 import time
 import os
 import os.path
@@ -12,8 +12,8 @@ from email.mime.text import MIMEText
 from email import charset
 import hashlib
 import json
-import urllib2
-from var_dump import var_dump
+import urllib.request
+import pprint
 
 import flickr_api
 import jinja2
@@ -54,7 +54,7 @@ def main():
 
     args = parser.parse_args()
 
-    state = ConfigParser.RawConfigParser({
+    state = configparser.RawConfigParser({
         'last_date': int(time.time() - 24 * 60 * 60),
         'smtp_from': 'admin@example.com',
         'smtp_to': 'clients@example.com',
@@ -69,13 +69,14 @@ def main():
     state.read("state.ini")
 
     if args.since_days:
+        # noinspection PyTypeChecker
         state.set('main', 'last_date', int(time.time() - args.since_days * 24 * 60 * 60))
 
     # set up flickr_api app credentials
     try:
         flickr_api.set_keys(api_key=state.get('main', 'api_key'),
                             api_secret=state.get('main', 'api_secret'))
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         state.set('main', 'api_key', 'API_KEY')
         state.set('main', 'api_secret', 'API_SECRET')
         write_state(state)
@@ -83,7 +84,7 @@ def main():
 
     if args.user_add_interactive:
         a = flickr_api.auth.AuthHandler()
-        print "Open this URL in a web browser and authorize", a.get_authorization_url("read")
+        print("Open this URL in a web browser and authorize", a.get_authorization_url("read"))
 
         oauth_token = raw_input("Paste the oauth_verifier parameter here: ")
 
@@ -91,7 +92,7 @@ def main():
         flickr_api.set_auth_handler(a)
 
         user = flickr_api.test.login()
-        print "Authorized user:", user
+        print("Authorized user:", user)
 
         if not os.path.exists('users'):
             os.mkdir('users')
@@ -100,9 +101,9 @@ def main():
 
     if args.user_add:
         a = flickr_api.auth.AuthHandler()
-        print "Open this URL in a web browser and authorize", a.get_authorization_url("read")
-        print "Then run the command again with --user_auth_verifier <oauth_verifier> " \
-              "to finish authorizing"
+        print("Open this URL in a web browser and authorize", a.get_authorization_url("read"))
+        print("Then run the command again with --user_auth_verifier <oauth_verifier> "
+              "to finish authorizing")
 
         if not os.path.exists('tmp_users'):
             os.mkdir('tmp_users')
@@ -132,7 +133,7 @@ def main():
                 flickr_api.set_auth_handler(a)
 
                 user = flickr_api.test.login()
-                print "Authorized user:", user
+                print("Authorized user:", user)
 
                 if not os.path.exists('users'):
                     os.mkdir('users')
@@ -141,7 +142,7 @@ def main():
                 os.remove(f)
 
                 return
-            except:
+            except OSError:
                 # continue trying
                 pass
 
@@ -150,8 +151,8 @@ def main():
     if args.user_delete:
         try:
             os.remove('users/' + args.user_delete)
-        except:
-            print "Could not remove the user"
+        except Exception:
+            print("Could not remove the user")
             raise
         return
 
@@ -159,16 +160,16 @@ def main():
         # handle old-style auth directly, since flickr_api only handled OAuth
         m = hashlib.md5()
         m.update(state.get('main', 'api_secret'))
-        m.update('api_key')
+        m.update(b'api_key')
         m.update(state.get('main', 'api_key'))
-        m.update('auth_token')
+        m.update(b'auth_token')
         m.update(args.user_old_auth)
-        m.update('format')
-        m.update('json')
-        m.update('method')
-        m.update('flickr.auth.oauth.getAccessToken')
-        m.update('nojsoncallback')
-        m.update('1')
+        m.update(b'format')
+        m.update(b'json')
+        m.update(b'method')
+        m.update(b'flickr.auth.oauth.getAccessToken')
+        m.update(b'nojsoncallback')
+        m.update(b'1')
 
         url = "https://api.flickr.com/services/rest/" \
               "?method=flickr.auth.oauth.getAccessToken" \
@@ -177,11 +178,12 @@ def main():
               "&format=json" \
               "&nojsoncallback=1" \
               "&api_sig={2}".format(
-            state.get('main', 'api_key'),
-            args.user_old_auth,
-            m.hexdigest())
+                  state.get('main', 'api_key'),
+                  args.user_old_auth,
+                  m.hexdigest()
+              )
 
-        resp = urllib2.urlopen(url)
+        resp = urllib.request.urlopen(url)
         response = json.load(resp)
 
         if response['stat'] != 'ok':
@@ -198,7 +200,7 @@ def main():
         flickr_api.set_auth_handler(a)
 
         user = flickr_api.test.login()
-        print "Authorized user:", user
+        print("Authorized user:", user)
 
         if not os.path.exists('users'):
             os.mkdir('users')
@@ -229,7 +231,7 @@ def main():
         if photos.data:
             info = flickr_api.test.login().getInfo()
 
-            info['buddyicon'] = "http://farm{iconfarm}.staticflickr.com/{iconserver}/" \
+            info['buddyicon'] = "https://farm{iconfarm}.staticflickr.com/{iconserver}/" \
                                 "buddyicons/{nsid}.jpg" \
                 .format(**info)
 
@@ -242,19 +244,22 @@ def main():
                     flickr_url="https://www.flickr.com/photos/{0}/{1}/".format(username, photo.id)
                 )
 
-            if args.verbose: print var_dump(photos)
+            if args.verbose:
+                pprint.pprint(photos)
 
             num_photos += len(photos.data)
             users[username] = info
             user_photos[username] = photos.data
             user_photos_by_taken[username] = sorted(photos.data, key=lambda x: x.datetaken)
 
+    # noinspection PyTypeChecker
     state.set('main', 'last_date', int(time.time()))
-    if not args.dry_run: write_state(state)
+    if not args.dry_run:
+        write_state(state)
 
     if len(users) == 0 or num_photos == 0:
         if not args.quiet:
-            print "No new content"
+            print("No new content")
         return
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader('.'))
@@ -262,7 +267,8 @@ def main():
     text = template.render(user_photos=user_photos, users=users,
                            user_photos_by_taken=user_photos_by_taken)
 
-    if args.verbose: print text
+    if args.verbose:
+        print(text)
 
     if not args.dry_run:
         try:
@@ -293,16 +299,16 @@ def main():
 
             s.sendmail(state.get('main', 'smtp_from'), to + cc + bcc, msg.as_string())
             s.quit()
-        except:
-            print "Can't send email, you can set SMTP options in state.ini: " \
-                  "set smtp_tls=true, smtp_user, smtp_pass for encrypted and authenticated SMTP"
+        except Exception:
+            print("Can't send email, you can set SMTP options in state.ini: "
+                  "set smtp_tls=true, smtp_user, smtp_pass for encrypted and authenticated SMTP")
             raise
 
     if not args.quiet:
-        print "Sent email containing {0} photos from {1} users".format(
+        print("Sent email containing {0} photos from {1} users".format(
             len([item for sublist in user_photos.values() for item in sublist]),
             len(users)
-        )
+        ))
 
 
 if __name__ == '__main__':

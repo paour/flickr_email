@@ -7,7 +7,7 @@
 <h2>New photos have been posted</h2>
 
 <table style="width: 100%; border: none; text-align: center; vertical-align: middle">
-{% for user, photos in user_photos_by_taken.iteritems() %}
+{% for user, photos in user_photos_by_taken.items() %}
 	<tr><th><a href="{{ users[user].photosurl }}"><img src="{{ users[user].buddyicon }}" alt="Buddy icon" />
         {{ users[user].realname }}
     </a></th></tr>
