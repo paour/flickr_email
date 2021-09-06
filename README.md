@@ -38,3 +38,7 @@ Clone the project: `git clone http://www.github.com/paour/flickr_email`
 ## Run the script
 
 - Just run `python flickr_email.py` to cause emails to be sent; on first run, it will select photos from the last day and on subsequent runs, new photos since the last run (delete `last_date` in `state.ini` to reset)
+
+## Run in Docker
+
+- `docker run paour/flickr_email -v config:/app/config`

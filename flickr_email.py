@@ -20,9 +20,11 @@ import jinja2
 
 
 def write_state(state):
-    shutil.copy('state.ini', 'state.bak')
-    with open('state.ini', 'w') as state_file:
-    	state.write(state_file)
+    if not os.path.exists('config'):
+        os.makedirs('config')
+    shutil.copy('config/state.ini', 'config/state.bak')
+    with open('config/state.ini', 'w') as state_file:
+        state.write(state_file)
 
 def get_state_array(state, section, option):
     value = state.get(section, option)
@@ -66,7 +68,7 @@ def main():
         'smtp_tls': 'false',
     })
     state.add_section('main')
-    state.read("state.ini")
+    state.read("config/state.ini")
 
     if args.since_days:
         # noinspection PyTypeChecker
@@ -94,9 +96,9 @@ def main():
         user = flickr_api.test.login()
         print("Authorized user:", user)
 
-        if not os.path.exists('users'):
-            os.mkdir('users')
-        a.save("users/" + user.username)
+        if not os.path.exists('config/users'):
+            os.makedirs('config/users')
+        a.save("config/users/" + user.username)
         return
 
     if args.user_add:
@@ -105,19 +107,19 @@ def main():
         print("Then run the command again with --user_auth_verifier <oauth_verifier> "
               "to finish authorizing")
 
-        if not os.path.exists('tmp_users'):
-            os.mkdir('tmp_users')
+        if not os.path.exists('config/tmp_users'):
+            os.makedirs('config/tmp_users')
 
         # can't use a.save() because that method requires an access_token
         # and all we have is a request_token
-        with open("tmp_users/" + a.request_token.key, "w") as f:
+        with open("config/tmp_users/" + a.request_token.key, "w") as f:
             f.write("\n".join([a.request_token.key,
                                a.request_token.secret]))
         return
 
     if args.user_auth_verifier:
         # we don't know which of the temp users matches the verifier, try each of them in turn
-        for f in glob.glob("tmp_users/*"):
+        for f in glob.glob("config/tmp_users/*"):
             try:
                 with open(f, "r") as f1:
                     request_token = f1.read().split("\n")
@@ -135,9 +137,9 @@ def main():
                 user = flickr_api.test.login()
                 print("Authorized user:", user)
 
-                if not os.path.exists('users'):
-                    os.mkdir('users')
-                a.save("users/" + user.username)
+                if not os.path.exists('config/users'):
+                    os.makedirs('config/users')
+                a.save("config/users/" + user.username)
 
                 os.remove(f)
 
@@ -150,7 +152,7 @@ def main():
 
     if args.user_delete:
         try:
-            os.remove('users/' + args.user_delete)
+            os.remove('config/users/' + args.user_delete)
         except Exception:
             print("Could not remove the user")
             raise
@@ -202,9 +204,9 @@ def main():
         user = flickr_api.test.login()
         print("Authorized user:", user)
 
-        if not os.path.exists('users'):
-            os.mkdir('users')
-        a.save("users/" + user.username)
+        if not os.path.exists('config/users'):
+            os.makedirs('config/users')
+        a.save("config/users/" + user.username)
         return
 
     # get photos and send email
@@ -213,7 +215,7 @@ def main():
     users = {}
     num_photos = 0
 
-    user_profiles = glob.glob("users/*")
+    user_profiles = glob.glob("config/users/*")
 
     if not len(user_profiles):
         exit("Please authorize users (no registered users yet)")
@@ -262,8 +264,11 @@ def main():
             print("No new content")
         return
 
+    if not os.path.exists('config/email.jinja2'):
+        shutil.copy('email.jinja2', 'config/email.jinja2')
+
     env = jinja2.Environment(loader=jinja2.FileSystemLoader('.'))
-    template = env.get_template('email.jinja2')
+    template = env.get_template('config/email.jinja2')
     text = template.render(user_photos=user_photos, users=users,
                            user_photos_by_taken=user_photos_by_taken)
 
@@ -283,7 +288,7 @@ def main():
             # msg['Bcc'] = ",".join(bcc) # Add BCC to sendmail, but not headers
             msg['Subject'] = state.get('main', 'smtp_subject')
 
-            s = smtplib.SMTP()
+            s = smtplib.SMTP(state.get('main', 'smtp_server'), state.getint('main', 'smtp_port'))
             s.connect(state.get('main', 'smtp_server'), state.getint('main', 'smtp_port'))
 
             if args.smtp_debug:

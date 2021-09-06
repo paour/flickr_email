@@ -1,0 +1,1 @@
+1 1 * * * python /app/flick_email.py -v
