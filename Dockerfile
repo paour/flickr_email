@@ -8,7 +8,8 @@ COPY flickr_email.py email.jinja2 start.sh /app/
 RUN chmod +x /app/flickr_email.py /app/start.sh
 
 VOLUME /app/config
-ENV CRONTAB="1 1 * * *"
+ENV CRON_SCHEDULE="1 1 * * *"
+ENV CRON_POSTFIX=""
 
 # run crond as main process of container
 ENTRYPOINT ["/app/start.sh"]
